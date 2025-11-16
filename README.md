@@ -1,223 +1,186 @@
-# mh_rename
+# mh_rename – File Sequence Renamer
 
-**Version:** 2025-11-16  •  **Author:** Martin Heigan  •  **Suite:** mh_tools
-
-Rename and Renumber Image Sequences
-
-**License:** CC BY-NC-ND 4.0 (see LICENSE.rtf)
+`mh_rename` is a small GUI tool (part of the **mh_tools** suite) for batch-renaming numbered file sequences.
+It’s designed for VFX / CGI workflows: renumbering frame sequences, tweaking padding, changing extensions, and doing safe text replacements with a live preview before anything touches disk.
 
 ---
-## 🎛️ Tool Usage & Overview
-mh_tools • All-in-One Git + README + LFS — User Manual
 
-Version: {{today}}
+## Features
 
-Overview
+- **Browse-based GUI (no CLI needed)** – point at a folder and work visually.
+- **Replace Section**
+  - Find text in filenames and replace it with something else.
+  - Useful for renaming shots, passes, or tokens without touching the frame numbers.
+- **Renumber Sequence**
+  - Start at any frame (default: `1001`) and renumber in order.
+  - Strips an existing 3–5 digit suffix and appends the new padded frame number.
+- **Change Padding**
+  - Control the number of digits (e.g. `001`, `0001`, `0100`).
+  - Default padding is `4`.
+- **Change Extension**
+  - Optionally change `.exr` → `.png`, `.tif` → `.jpg`, etc.
+- **Preview Rename**
+  - Side-by-side list of **original → new** filenames in a scrollable window.
+  - Preview mode does **not** modify files.
+- **Output Directory (optional)**
+  - Rename in-place or send renamed files to a different folder.
 
-This tool unifies everyday Git + GitHub tasks for your scripting projects:
+The app uses the standard `mh_tools` Tkinter layout, including a labelled frame called `mh_tools` and a centred window with a splash screen on startup.
 
-README & Docs generation (manual import to docs/ and Markdown extraction from .docx)
+---
 
-Repository & remote management (create repo via PAT, set origin to SSH, Quick Commit, Stash/Pop, Pull --rebase, Push, Force push with lease)
+## Getting Started
 
-Ignore & LFS controls (preset ignores, ffmpeg/ toggle, custom file/folder ignore picker, optional .git/info/exclude, enable Git LFS for media)
+### Option 1 – Use the EXE (recommended for artists)
 
-Backup Files tab (preserves original path structure inside project/backup/)
+On Windows you’ll typically get a packaged executable:
 
-History Cleanup (purge >100 MB blobs with git-filter-repo, then force push)
+1. Place `mh_Rename.exe` (and the `_internal` folder with `splash.png`, if present) in any writable directory.
+2. Double-click **mh_Rename.exe**.
+3. The splash screen shows briefly, then the main GUI appears.
 
-Utilities (Test SSH, Repair origin→SSH & push, Create venv, Init repo, Load SSH key console, Open docs/, Force SSH everywhere)
+You don’t need Python installed for the EXE build.
 
-The GUI is centered and contained in a labeled frame named mh_tool. Default size is 1200×660 (min width 1200 to avoid button cropping).
+### Option 2 – Run from source (for developers / tinkerers)
 
-What’s New in This Version
+Requirements:
 
-Quick Commit detects a clean tree and shows the last commit hash when there’s nothing to commit.
+- Python 3.8+ (tested with standard CPython)
+- Tkinter (ships with most Python installs on Windows/macOS/Linux)
 
-Automatic Force SSH everywhere before push/force-push/repair/set-origin (prevents HTTPS credential prompts).
+Run:
 
-Public/Private visibility toggle when creating a GitHub repository via PAT.
+```bash
+python mh_rename.py
+```
 
-README tab: generate, preview, and commit README; attach manual (.docx), setup PDF, and other docs to docs/.
+The splash + GUI behaviour is the same as the EXE.
 
-Ignore & LFS: add custom files/folders to .gitignore via pickers; optionally mirror to .git/info/exclude (local only).
+---
 
-Backup tab: add files/folders to back up into project/backup/ with original project-relative paths preserved.
+## UI Overview
 
-History Cleanup: purge >100 MB blobs with git-filter-repo and then force push main.
+All controls live inside a labelled frame called **mh_tools** for consistency with the rest of the mh_tools suite.
 
-Utilities: Test SSH, Repair origin→SSH & Push, Create venv + install requirements, Init repo, load SSH key console.
+### 1. Input & Output Directories
 
-Typical Workflow (Day-to-Day Updates)
+- **Select Input Directory**  
+  Folder containing the files you want to rename.
+- **Select Output Directory (Optional)**  
+  If omitted, files will be renamed **in the input folder**.  
+  If set, files are moved/renamed into this output folder instead.
 
-Open your project folder at the top of the GUI.
+---
 
-(Optional) In README & Docs: Preview/Generate README or Generate → Stage & Commit.
+### 2. Replace Section
 
-In Repo & Remote: Quick Commit (stage all) → enter a concise message.
+Labelled frame: **Replace Section**.
 
-Push main. If rejected (remote ahead), choose Pull (rebase) or Force push with lease.
+- Tick **Enable** to activate replacement.
+- **Text to replace** – the exact substring you want to remove or change.
+- **Replace with** – replacement text (can be empty to just remove).
 
-If large binaries appear (>100 MB), use History Cleanup → Purge >100 MB & Force Push.
+Example:  
+`frame_001.png` → replace `frame_` with `shot_` → becomes `shot_001.png`.
 
-In Backup: Sync backup to project for .spec / .bat / icons, preserving project-relative paths.
+---
 
-Tabs & Controls — README & Docs
+### 3. Renumber Sequence
 
-Repository Name / Description → used in README.md.
+Labelled frame: **Renumber Sequence**.
 
-Manual (.docx): copied to docs/; Markdown headings are extracted and embedded into README (link to the .docx is kept).
+- Tick **Enable** to renumber.
+- **Start number** – starting frame (default `1001`).
 
-Attachments (docs/): copied to docs/ and linked in README.
+Renumbering logic:
 
-Setup PDF: optional; included in docs/ and linked.
+- Strips a trailing pattern like `.<digits>` or `_<digits>` (3–5 digits).
+- Appends a new padded number (length defined in **Change Padding**).
+- The counter increments per file in sorted order.
 
-Buttons:
+---
 
-Preview README: show generated Markdown.
+### 4. Change Padding
 
-Generate README: write README.md (and copy docs).
+Labelled frame: **Change Padding**.
 
-Generate README → Stage & Commit: commits README and docs immediately.
+- Tick **Enable** to control digit width.
+- **Padding** – number of digits to use (default `4`).
 
-Docs ▸ Open folder: opens docs/ in your OS file manager.
+If renumbering is enabled, padding applies to the new frame number:
+- `Start = 10`, `Padding = 4` → `0010`, `0011`, …
 
-Tabs & Controls — Repo & Remote
+---
 
-Username/Org + Repository Name → used for SSH origin URL and for PAT repo creation.
+### 5. Change Extension
 
-Visibility: Private/Public when creating repo via PAT.
+Labelled frame: **Change Extension**.
 
-Personal Access Token (repo scope): only required for Create Repo on GitHub (via PAT). Regular pushes use SSH.
+- Tick **Enable** to change file type extension.
+- **New extension** – type without the leading dot (e.g. `jpg`, `exr`).
 
-Use SSH for push (recommended): prevents Windows Credential Manager loops.
+If disabled, original extensions are preserved.
 
-Buttons:
+---
 
-Create Repo on GitHub (via PAT): create remote repository via API.
+## Preview and Rename Workflow
 
-Set origin → SSH: sets origin to git@github.com:<user>/<repo>.git and configures Windows OpenSSH.
+1. **Set Directories**
+   - Choose an **Input Directory**.
+   - Optionally choose an **Output Directory**.
 
-Quick Commit (stage all): stages everything; if tree is clean, shows last commit hash; else prompts for message and commits.
+2. **Configure Options**
+   - Enable **Replace Section** / **Renumber Sequence** / **Change Padding** / **Change Extension** as needed.
+   - Fill in the related fields.
 
-Stash / Stash Pop: save/restore WIP before pull --rebase if necessary.
+3. **Preview Rename (safe)**
+   - Click **Preview Rename**.
+   - A new window opens showing one line per file:  
+     `original_name.ext → new_name.ext`.  
+   - Use this to sanity-check before committing.
 
-Pull (rebase): integrates remote changes while keeping a linear history.
+4. **Rename Files (commit)**
+   - When happy with the preview, close it and click **Rename Files**.
+   - Files are renamed/moved according to your settings.
+   - A confirmation dialog appears when done.
 
-Force push (lease): safe overwrite when history changed locally; uses --force-with-lease.
+---
 
-Push main: standard push; if rejected, app offers Pull (rebase) or Force push (lease).
+## Example
 
-Open repo on GitHub: opens https://github.com/<user>/<repo>.
+**Original files**
 
-Tabs & Controls — Ignore & LFS
+```text
+frame_001.png
+frame_002.png
+```
 
-Ignore ffmpeg/ folder: toggles ffmpeg/ in .gitignore.
+**Settings**
 
-Enable Git LFS for media: enables LFS and tracks typical media patterns (EXR/MOV/MP4/TIF/WAV/JPG/PNG/TIFF).
+- Replace: `frame_` → `shot_`
+- Renumber Sequence: **Enable**
+  - Start number: `10`
+- Change Padding: **Enable**
+  - Padding: `4`
+- Change Extension: **Enable**
+  - New extension: `jpg`
 
-Custom ignores: add files/folders (converted to project-relative patterns) to .gitignore.
+**Result**
 
-Also add to .git/info/exclude: mirrors the same patterns locally (never pushed).
+```text
+frame_001.png → shot_0010.jpg
+frame_002.png → shot_0011.jpg
+```
 
-Buttons:
+---
 
-Apply .gitignore rules: appends rules and stages .gitignore.
+## Licence
 
-Enable LFS (track media): runs git lfs track and commits .gitattributes if needed.
+TBD – choose a licence (e.g. MIT, BSD-3, etc.) and update this section accordingly.
 
-Edit .gitignore: quick editor.
+---
 
-Tabs & Controls — Backup Files
+## Credits
 
-Add Files… / Add Folder…: choose items to copy to project/backup/.
-
-Preserve original path structure: items inside the project mirror to backup/<relative_path>.
-
-External items (outside project) go to backup/_external/.
-
-Ensure backup/ is tracked: updates .gitignore to allow backup/**.
-
-Auto-commit backup during README commit (optional).
-
-Buttons:
-
-Sync backup to project
-
-Open backup folder
-
-Tabs & Controls — History Cleanup
-
-Purge >100 MB & Force Push: uses git-filter-repo to remove blobs >100 MB across history, expires reflog, runs aggressive GC, then force pushes main.
-
-Use when GitHub rejects pushes due to large file history (e.g., ffmpeg.exe, big EXRs).
-
-Requires: pip install git-filter-repo.
-
-Tabs & Controls — Utilities
-
-Test SSH: ssh -T git@github.com and report result (“successfully authenticated”).
-
-Repair origin → SSH & Push: convert origin to SSH, use Windows OpenSSH, push.
-
-Create venv & install requirements: create .venv and install requirements.txt if present.
-
-Init repo (.git): git init, set branch main.
-
-Load SSH key (opens console): elevated PowerShell starts ssh-agent and runs ssh-add ~/.ssh/id_ed25519.
-
-Force SSH everywhere: sets global HTTPS→SSH rewrite for GitHub and updates repo origin to SSH; verifies with ls-remote.
-
-Short Guide: Push an Updated Version
-
-Update code/docs locally.
-
-(Optional) README: Generate README → Stage & Commit.
-
-Quick Commit → message.
-
-Push main. If rejected, Pull (rebase) or Force push (lease).
-
-If GitHub rejects due to large files: History Cleanup → Purge >100 MB & Force Push.
-
-SSH & Origin Notes
-
-The app enforces SSH for pushes to avoid Credential Manager prompts.
-
-Force SSH everywhere sets a global Git rewrite from https://github.com/ to ssh://git@github.com/ and updates origin.
-
-Use Load SSH key if ssh-add -l shows no identities.
-
-Appendix A — GitHub Setup (Windows)
-
-Ensure OpenSSH Client is installed and Git is in PATH.
-
-Generate a key:
-ssh-keygen -t ed25519 -C "you@example.com"
-
-Start + load agent (PowerShell as Admin):
-Set-Service ssh-agent -StartupType Automatic; Start-Service ssh-agent
-ssh-add $env:USERPROFILE\.ssh\id_ed25519
-
-Test:
-ssh -T git@github.com → “Hi <user>! You’ve successfully authenticated…”
-
-Set origin SSH:
-git remote set-url origin git@github.com:<user>/<repo>.git
-
-## 📂 Attached Docs
-- [mh_tools_all_in_one_manual.docx](docs/mh_tools_all_in_one_manual.docx)
-- [mh_Rename_User_Manual.docx](docs/mh_Rename_User_Manual.docx)
-
-## 🧭 Appendix A — GitHub Setup (Windows)
-
-**SSH quick check**
-1) Load key: `ssh-add %USERPROFILE%\\.ssh\id_ed25519`
-2) Test: `ssh -T git@github.com`  →  “successfully authenticated”
-3) Ensure remote uses SSH:
-   `git remote set-url origin git@github.com:<user>/<repo>.git`
-
-
-—
-
-_README generated by mh_tools All-in-One GUI_
+- **Author:** Martin Heigan  
+- **Tool family:** Part of the broader `mh_tools` utility suite for VFX, CGI and general production workflows.
