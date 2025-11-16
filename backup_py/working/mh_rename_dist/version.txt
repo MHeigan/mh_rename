@@ -1,0 +1,36 @@
+# version.txt
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 2, 0, 0),         # File version: 1.2.0.0
+    prodvers=(1, 2, 0, 0),         # Product version: 1.2.0.0
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          '040904B0',  # Language and codepage: US English + Unicode
+          [
+            StringStruct('CompanyName', 'mh_tools'),
+            StringStruct('FileDescription', 'mh_rename - File Sequence Renamer'),
+            StringStruct('FileVersion', '1.2.0'),
+            StringStruct('InternalName', 'mh_rename'),
+            StringStruct('LegalCopyright', '© 2025 Martin P Heigan.'),
+            StringStruct('LegalTrademarks', 'mh_tools by Martin P Heigan.'),
+            StringStruct('OriginalFilename', 'mh_rename.exe'),
+            StringStruct('ProductName', 'mh_rename - File Sequence Renamer'),
+            StringStruct('ProductVersion', '1.2.0')
+          ]
+        )
+      ]
+    ),
+    VarFileInfo([
+      VarStruct('Translation', [1033, 1200])  # English - Unicode
+    ])
+  ]
+)

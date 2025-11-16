@@ -1,0 +1,3 @@
+pyarmor pack --clean -e "--onefile " your_script.py
+
+pyarmor pack --clean -e "--onedir " your_script.py
