@@ -1,7 +1,7 @@
 import os
 import re
 import tkinter as tk
-from tkinter import filedialog, messagebox, PhotoImage
+from tkinter import filedialog, messagebox
 
 """
 mh_tools - File Sequence Renamer
@@ -40,7 +40,8 @@ class FileRenamerGUI:
         # Input and output directory selection
         self.setup_directory_selection()
 
-        # Feature control sections
+        # Replace / Renumber / Padding / Extension sections
+        self.setup_feature_toggles()
         self.setup_replace_section()
         self.setup_renumber_section()
         self.setup_padding_section()
@@ -55,6 +56,9 @@ class FileRenamerGUI:
 
     def setup_directory_selection(self):
         """Create input/output directory browse controls."""
+        dir_frame = tk.Frame(self.container)
+        dir_frame.pack(fill="x", pady=(0, 10))
+
         # Input
         self.input_dir_label = tk.Label(
             self.container,
@@ -71,7 +75,7 @@ class FileRenamerGUI:
         # Output
         self.output_dir_label = tk.Label(
             self.container,
-            text="No output directory selected (will use input)"
+            text="No output directory selected (rename in place)"
         )
         self.output_dir_label.pack(pady=5)
         tk.Button(
@@ -81,14 +85,15 @@ class FileRenamerGUI:
             bg="light grey"
         ).pack(pady=5)
 
-    def setup_replace_section(self):
-        """Create controls for replacing text in filenames."""
+    def setup_feature_toggles(self):
+        """Create section headers and checkboxes for each feature."""
+        # Replace Section
         self.replace_var = tk.BooleanVar()
         replace_frame = tk.LabelFrame(
             self.container,
             text="Replace Section",
-            padx=10,
-            pady=10
+            padx  = 10,
+            pady  = 10
         )
         replace_frame.pack(fill="x", padx=10, pady=5)
         tk.Checkbutton(
@@ -96,15 +101,11 @@ class FileRenamerGUI:
             text="Enable",
             variable=self.replace_var
         ).pack(anchor="w")
-        tk.Label(replace_frame, text="Text to replace:").pack(anchor="w")
-        self.replace_from_entry = tk.Entry(replace_frame)
-        self.replace_from_entry.pack(fill="x")
-        tk.Label(replace_frame, text="Replace with:").pack(anchor="w")
-        self.replace_to_entry = tk.Entry(replace_frame)
-        self.replace_to_entry.pack(fill="x")
 
-    def setup_renumber_section(self):
-        """Create controls for renumbering sequence."""
+        # We'll populate specific controls in setup_replace_section
+        self.replace_frame = replace_frame
+
+        # Renumber Section
         self.renumber_var = tk.BooleanVar()
         renumber_frame = tk.LabelFrame(
             self.container,
@@ -118,13 +119,10 @@ class FileRenamerGUI:
             text="Enable",
             variable=self.renumber_var
         ).pack(anchor="w")
-        tk.Label(renumber_frame, text="Start number:").pack(anchor="w")
-        self.start_entry = tk.Entry(renumber_frame)
-        self.start_entry.pack(fill="x")
-        self.start_entry.insert(0, "1001")
 
-    def setup_padding_section(self):
-        """Create controls for changing padding."""
+        self.renumber_frame = renumber_frame
+
+        # Padding Section
         self.padding_var = tk.BooleanVar()
         padding_frame = tk.LabelFrame(
             self.container,
@@ -140,11 +138,12 @@ class FileRenamerGUI:
         ).pack(anchor="w")
         tk.Label(padding_frame, text="Padding:").pack(anchor="w")
         self.padding_entry = tk.Entry(padding_frame)
-        self.padding_entry.pack(fill="x")
-        self.padding_entry.insert(0, "4")
+        self.padding_entry.insert(0, "4")  # Default padding value
+        self.padding_entry.pack(fill="x", pady=2)
 
-    def setup_extension_section(self):
-        """Create controls for changing file extension."""
+        self.padding_frame = padding_frame
+
+        # Extension Section
         self.ext_var = tk.BooleanVar()
         ext_frame = tk.LabelFrame(
             self.container,
@@ -158,173 +157,247 @@ class FileRenamerGUI:
             text="Enable",
             variable=self.ext_var
         ).pack(anchor="w")
-        tk.Label(ext_frame, text="New extension:").pack(anchor="w")
+        tk.Label(ext_frame, text="New extension (without dot):").pack(anchor="w")
         self.ext_entry = tk.Entry(ext_frame)
-        self.ext_entry.pack(fill="x")
+        self.ext_entry.insert(0, "exr")
+        self.ext_entry.pack(fill="x", pady=2)
+
+        self.ext_frame = ext_frame
+
+    def setup_replace_section(self):
+        """Create controls for text replace feature."""
+        tk.Label(self.replace_frame, text="Text to replace:").pack(anchor="w")
+        self.find_entry = tk.Entry(self.replace_frame)
+        self.find_entry.pack(fill="x", pady=2)
+
+        tk.Label(self.replace_frame, text="Replace with:").pack(anchor="w")
+        self.replace_entry = tk.Entry(self.replace_frame)
+        self.replace_entry.pack(fill="x", pady=2)
+
+    def setup_renumber_section(self):
+        """Create controls for renumbering sequence."""
+        tk.Label(self.renumber_frame, text="Start number:").pack(anchor="w")
+        self.start_entry = tk.Entry(self.renumber_frame)
+        self.start_entry.insert(0, "1001")  # Default start number
+        self.start_entry.pack(fill="x", pady=2)
+
+        tk.Label(self.renumber_frame, text="(Existing 3–5 digit suffix will be stripped)").pack(anchor="w")
+
+    def setup_padding_section(self):
+        """Create controls for changing padding."""
+        # Already created in setup_feature_toggles; this method kept for clarity/extension.
+        pass
+
+    def setup_extension_section(self):
+        """Additional configuration for extension changes (already prepared)."""
+        # Already created in setup_feature_toggles; this method kept for clarity/extension.
+        pass
 
     def setup_action_buttons(self):
-        """Add Preview and Rename buttons."""
+        """Create Preview and Rename buttons."""
         btn_frame = tk.Frame(self.container)
-        btn_frame.pack(pady=10)
-        self.preview_button = tk.Button(
+        btn_frame.pack(fill="x", pady=10)
+
+        tk.Button(
             btn_frame,
             text="Preview Rename",
-            command=self.preview_files,
+            command=self.preview_renames,
             bg="light grey"
-        )
-        self.preview_button.pack(side="left", padx=5)
-        self.rename_button = tk.Button(
+        ).pack(side="left", expand=True, padx=5)
+
+        tk.Button(
             btn_frame,
             text="Rename Files",
             command=self.rename_files,
             bg="light grey"
-        )
-        self.rename_button.pack(side="left", padx=5)
+        ).pack(side="left", expand=True, padx=5)
 
     def select_input_directory(self):
-        """Handler for browsing input directory."""
-        self.input_dir = filedialog.askdirectory()
-        if self.input_dir:
-            self.input_dir_label.config(text=self.input_dir)
+        """Open a dialog to select the input directory."""
+        directory = filedialog.askdirectory(title="Select Input Directory")
+        if directory:
+            self.input_dir = os.path.normpath(directory)
+            self.input_dir_label.config(text=f"Input: {self.input_dir}")
 
     def select_output_directory(self):
-        """Handler for browsing output directory."""
-        self.output_dir = filedialog.askdirectory()
-        if self.output_dir:
-            self.output_dir_label.config(text=self.output_dir)
+        """Open a dialog to select the output directory (optional)."""
+        directory = filedialog.askdirectory(title="Select Output Directory")
+        if directory:
+            self.output_dir = os.path.normpath(directory)
+            self.output_dir_label.config(text=f"Output: {self.output_dir}")
+        else:
+            self.output_dir = ""
+            self.output_dir_label.config(text="No output directory selected (rename in place)")
 
-    def compute_new_name(self, filename, counter=None, padding=4, new_ext=None):
+    def get_new_filename(self, filename, counter, padding, start_number):
         """
-        Given an original filename, apply replace, renumber, and extension
-        rules to compute the new filename.
+        Build a new filename based on the enabled options:
+        - Replace text section.
+        - Renumber sequence.
+        - Change padding.
+        - Change extension.
         """
         name, ext = os.path.splitext(filename)
         new_name = name
-        # Replace text
-        if self.replace_var.get():
-            new_name = new_name.replace(
-                self.replace_from_entry.get(),
-                self.replace_to_entry.get()
-            )
-        # Renumber
-        if self.renumber_var.get() and counter is not None:
-            new_name = re.sub(r'[\._](\d{3,5})$', '', new_name)
-            number = f"{counter:0{padding}d}"
-            new_name = f"{new_name}.{number}"
-        # Extension change
-        ext = f".{new_ext}" if new_ext else ext
-        return new_name + ext
+        new_ext = ext
 
-    def preview_files(self):
+        # 1) Replace Section
+        if self.replace_var.get():
+            find_text = self.find_entry.get()
+            replace_text = self.replace_entry.get()
+            if find_text:
+                new_name = new_name.replace(find_text, replace_text)
+
+        # 2) Renumber Sequence
+        if self.renumber_var.get():
+            # Remove existing trailing .#### or _####
+            new_name = re.sub(r"(\.|\_)\d{3,5}$", "", new_name)
+            # Build new padded number
+            if start_number is not None:
+                frame_num = start_number + counter
+                pad_width = 4
+                if self.padding_var.get():
+                    try:
+                        pad_width = int(self.padding_entry.get())
+                    except ValueError:
+                        pad_width = 4
+                frame_str = str(frame_num).zfill(pad_width)
+                new_name = f"{new_name}.{frame_str}"
+
+        # 3) Change Extension
+        if self.ext_var.get():
+            ext_txt = self.ext_entry.get().strip()
+            if ext_txt:
+                new_ext = f".{ext_txt}"
+
+        return f"{new_name}{new_ext}"
+
+    def preview_renames(self):
         """
-        Show a pop-up preview window with original → new filenames.
+        Show a preview of the renaming operations in a separate window.
+        Does not perform any actual file operations.
         """
         input_dir = self.input_dir
         if not input_dir or not os.path.isdir(input_dir):
             messagebox.showerror("Error", "Please select a valid input directory.")
             return
+
         files = sorted(os.listdir(input_dir))
-        start_number = int(self.start_entry.get()) if self.renumber_var.get() else None
-        padding = int(self.padding_entry.get()) if self.padding_var.get() else 4
-        new_ext = self.ext_entry.get().lstrip('.') if self.ext_var.get() else None
-        # Create preview window
+        if not files:
+            messagebox.showwarning("No Files", "The selected directory is empty.")
+            return
+
+        try:
+            start_number = int(self.start_entry.get()) if self.renumber_var.get() else None
+        except ValueError:
+            messagebox.showerror("Error", "Start number must be an integer.")
+            return
+
+        try:
+            if self.padding_var.get():
+                int(self.padding_entry.get())
+        except ValueError:
+            messagebox.showerror(self.root, "Error", "Padding must be an integer.")
+            return
+
         preview = tk.Toplevel(self.root)
         preview.title("Preview Renames")
         preview.geometry("600x400")
+
         # Text widget with scrollbars
         text = tk.Text(preview, wrap="none")
         text.pack(fill="both", expand=True)
-        ys = tk.Scrollbar(preview, orient="vertical", command=text.yview)
-        ys.pack(side="right", fill="y")
-        xs = tk.Scrollbar(preview, orient="horizontal", command=text.xview)
-        xs.pack(side="bottom", fill="x")
-        text.configure(yscrollcommand=ys.set, xscrollcommand=xs.set)
-        # Populate preview
-        counter = start_number or 0
+
+        scrollbar_y = tk.Scrollbar(preview, orient="vertical", command=text.yview)
+        scrollbar_y.pack(side="right", fill="y")
+        text.config(yscrollcommand=scrollbar_y.set)
+
+        counter = 0
         for f in files:
-            new_name = self.compute_new_name(f, counter, padding, new_ext)
+            if os.path.isdir(os.path.join(input_dir, f)):
+                continue
+            new_name = self.get_new_filename(f, counter, int(self.padding_entry.get()), start_number)
+            line = f"{f}  ->  {new_name}\n"
+            text.insert("end", line)
             if self.renumber_var.get():
                 counter += 1
-            text.insert("end", f"{f} → {new_name}\n")
+
         text.config(state="disabled")
 
     def rename_files(self):
         """
-        Perform the actual renaming on disk according to current rules.
+        Execute the renaming operations on disk.
         """
         input_dir = self.input_dir
-        output_dir = self.output_dir or input_dir
-        if not os.path.isdir(input_dir):
+        if not input_dir or not os.path.isdir(input_dir):
             messagebox.showerror("Error", "Please select a valid input directory.")
             return
+
         files = sorted(os.listdir(input_dir))
-        start = int(self.start_entry.get()) if self.renumber_var.get() else None
-        pad = int(self.padding_entry.get()) if self.padding_var.get() else 4
-        ext = self.ext_entry.get().lstrip('.') if self.ext_var.get() else None
-        counter = start or 0
+        if not files:
+            messagebox.showwarning("No Files", "The selected directory is empty.")
+            return
+
+        # Confirm action
+        proceed = messagebox.askyesno(
+            "Confirm Rename",
+            "Are you sure you want to rename the files?"
+        )
+        if not proceed:
+            return
+
+        try:
+            start_number = int(self.start_entry.get()) if self.renumber_var.get() else None
+        except ValueError:
+            messagebox.showerror("Error", "Start number must be an integer.")
+            return
+
+        try:
+            padding = int(self.padding_entry.get()) if self.padding_var.get() else 4
+        except ValueError:
+            messagebox.showerror("Error", "Padding must be an integer.")
+            return
+
+        output_dir = self.output_dir if self.output_dir else self.input_dir
+        if not os.path.isdir(output_dir):
+            try:
+                os.makedirs(output_dir, exist_ok=True)
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not create output directory:\n{e}")
+                return
+
+        counter = 0
         for f in files:
             src = os.path.join(input_dir, f)
-            new_name = self.compute_new_name(f, counter, pad, ext)
+            if os.path.isdir(src):
+                continue
+
+            new_name = self.get_new_filename(f, counter, padding, start_number)
+            dst = os.path.join(output_dir, new_name)
+
             if self.renumber_var.get():
                 counter += 1
-            dst = os.path.join(output_dir, new_name)
+
             try:
                 os.rename(src, dst)
             except Exception as err:
                 print(f"Error renaming {f} -> {new_name}: {err}")
         messagebox.showinfo("Done", "Files renamed successfully.")
 
-# Splash screen functions
-
-def create_splash_window(root):
-    """Display splash screen before main GUI."""
-    splash = tk.Toplevel(root)
-    splash.overrideredirect(True)
-    splash.geometry("640x640")
-    splash.configure(bg="black")
-    try:
-        img = PhotoImage(file="_internal/splash.png")
-        lbl = tk.Label(splash, image=img)
-        lbl.image = img
-        lbl.pack(fill="both", expand=True)
-    except Exception:
-        pass
-    # Center splash
-    w, h = 640, 640
-    x = (root.winfo_screenwidth() - w) // 2
-    y = (root.winfo_screenheight() - h) // 2
-    splash.geometry(f"{w}x{h}+{x}+{y}")
-    root.after(2000, lambda: fade_out_and_show_gui(root, splash))
-
-def fade_out_and_show_gui(root, splash):
-    """Fade splash out and show main window."""
-    try:
-        splash.withdraw()
-        root.deiconify()
-        root.attributes("-alpha", 0.0)
-        # Center main window
-        w, h = 640, 780
-        x = (root.winfo_screenwidth() - w) // 2
-        y = (root.winfo_screenheight() - h) // 2
-        root.geometry(f"{w}x{h}+{x}+{y}")
-        fade_in(root, 0.0)
-    except Exception as e:
-        print(f"Splash cleanup error: {e}")
-
-def fade_in(win, alpha):
-    """Recursive fade-in effect for main window."""
-    if alpha < 1.0:
-        alpha += 0.1
-        win.attributes("-alpha", alpha)
-        win.after(30, lambda: fade_in(win, alpha))
-    else:
-        win.attributes("-alpha", 1.0)
-
 def main():
-    """Application entry point."""
+    """Application entry point (no splash, no custom icon)."""
     root = tk.Tk()
-    root.withdraw()
-    create_splash_window(root)
+    # Center the main window roughly on screen
+    try:
+        width, height = 640, 780
+        screen_w = root.winfo_screenwidth()
+        screen_h = root.winfo_screenheight()
+        x = (screen_w - width) // 2
+        y = (screen_h - height) // 2
+        root.geometry(f"{width}x{height}+{x}+{y}")
+    except Exception:
+        # Fallback: just set a default size
+        root.geometry("640x780")
     FileRenamerGUI(root)
     root.mainloop()
 
