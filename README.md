@@ -176,7 +176,7 @@ frame_002.png → shot_0011.jpg
 
 ## Licence
 
-TBD – choose a licence (e.g. MIT, BSD-3, etc.) and update this section accordingly.
+CC BY-NC-ND 4.0
 
 ---
 
