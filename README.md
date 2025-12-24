@@ -1,186 +1,86 @@
-# mh_rename – File Sequence Renamer
+**mh_rename — File Sequence Renamer (mh_tools)**
 
-`mh_rename` is a small GUI tool (part of the **mh_tools** suite) for batch-renaming numbered file sequences.
-It’s designed for VFX / CGI workflows: renumbering frame sequences, tweaking padding, changing extensions, and doing safe text replacements with a live preview before anything touches disk.
+A small, practical GUI tool for quickly renaming image sequences (or any batch of files) using simple rules: **replace text**, **renumber**, and/or **change extension**.
 
----
+Built for day-to-day production use where you just want the job done cleanly and predictably.
 
-## Features
-
-- **Browse-based GUI (no CLI needed)** – point at a folder and work visually.
-- **Replace Section**
-  - Find text in filenames and replace it with something else.
-  - Useful for renaming shots, passes, or tokens without touching the frame numbers.
-- **Renumber Sequence**
-  - Start at any frame (default: `1001`) and renumber in order.
-  - Strips an existing 3–5 digit suffix and appends the new padded frame number.
-- **Change Padding**
-  - Control the number of digits (e.g. `001`, `0001`, `0100`).
-  - Default padding is `4`.
-- **Change Extension**
-  - Optionally change `.exr` → `.png`, `.tif` → `.jpg`, etc.
-- **Preview Rename**
-  - Side-by-side list of **original → new** filenames in a scrollable window.
-  - Preview mode does **not** modify files.
-- **Output Directory (optional)**
-  - Rename in-place or send renamed files to a different folder.
-
-The app uses the standard `mh_tools` Tkinter layout, including a labelled frame called `mh_tools` and a centred window with a splash screen on startup.
+**Latest Release: mh_rename v1.2.0**
+https://github.com/MHeigan/mh_rename/releases/tag/mh_rename_1_2_0
 
 ---
 
-## Getting Started
+ **Features**
 
-### Option 1 – Use the EXE (recommended for artists)
-
-On Windows you’ll typically get a packaged executable:
-
-1. Place `mh_Rename.exe` (and the `_internal` folder with `splash.png`, if present) in any writable directory.
-2. Double-click **mh_Rename.exe**.
-3. The splash screen shows briefly, then the main GUI appears.
-
-You don’t need Python installed for the EXE build.
-
-### Option 2 – Run from source (for developers / tinkerers)
-
-Requirements:
-
-- Python 3.8+ (tested with standard CPython)
-- Tkinter (ships with most Python installs on Windows/macOS/Linux)
-
-Run:
-
-```bash
-python mh_rename.py
-```
-
-The splash + GUI behaviour is the same as the EXE.
+- **Select an Input Directory** containing files to rename
+- **Optional Output Directory** (files are **moved** there while renaming)
+- **Replace Text** (simple find/replace on the filename)
+- **Renumber** with a **start number** and **padding**
+  - Adds numbers as a **dot suffix**: `name.0001`
+  - Automatically removes an existing trailing `._####` / `_.####` style number first
+- **Change Extension** (e.g. `.png` → `.jpg`)
+- **Preview Rename** before committing changes
 
 ---
 
-## UI Overview
+## Download & Run (Windows)
 
-All controls live inside a labelled frame called **mh_tools** for consistency with the rest of the mh_tools suite.
+1. Download the latest release ZIP from the **Releases** page.
+2. Extract the ZIP to a convenient location (e.g. `D:\Tools\mh_rename\`).
+3. Run `mh_rename.exe`.
 
-### 1. Input & Output Directories
-
-- **Select Input Directory**  
-  Folder containing the files you want to rename.
-- **Select Output Directory (Optional)**  
-  If omitted, files will be renamed **in the input folder**.  
-  If set, files are moved/renamed into this output folder instead.
+> Tip: Keep a backup of your files. Preview first, rename second. You can also specify a different output directory; the Renamer will then copy and rename for you.
 
 ---
 
-### 2. Replace Section
+## How to Use
 
-Labelled frame: **Replace Section**.
-
-- Tick **Enable** to activate replacement.
-- **Text to replace** – the exact substring you want to remove or change.
-- **Replace with** – replacement text (can be empty to just remove).
-
-Example:  
-`frame_001.png` → replace `frame_` with `shot_` → becomes `shot_001.png`.
-
----
-
-### 3. Renumber Sequence
-
-Labelled frame: **Renumber Sequence**.
-
-- Tick **Enable** to renumber.
-- **Start number** – starting frame (default `1001`).
-
-Renumbering logic:
-
-- Strips a trailing pattern like `.<digits>` or `_<digits>` (3–5 digits).
-- Appends a new padded number (length defined in **Change Padding**).
-- The counter increments per file in sorted order.
+1. Click **Select Input Directory**
+2. (Optional) Click **Select Output Directory**
+3. Enable and fill any of these options:
+   - **Text to replace** / **Replace with**
+   - **Start number** (enable Renumber)
+   - **Padding** (e.g. 4 → `0001`)
+   - **New extension** (without the dot is fine)
+4. Click **Preview Rename** to check the result
+5. Click **Rename Files** to apply
 
 ---
 
-### 4. Change Padding
+## Examples
 
-Labelled frame: **Change Padding**.
+### Replace text
+- `shotA_render_v003.0001.exr` → replace `shotA` with `shotB`
 
-- Tick **Enable** to control digit width.
-- **Padding** – number of digits to use (default `4`).
+### Renumber (start 10, padding 4)
+- `frame_anything.exr` → `frame_anything.0010.exr`, `frame_anything.0011.exr`, ...
 
-If renumbering is enabled, padding applies to the new frame number:
-- `Start = 10`, `Padding = 4` → `0010`, `0011`, …
-
----
-
-### 5. Change Extension
-
-Labelled frame: **Change Extension**.
-
-- Tick **Enable** to change file type extension.
-- **New extension** – type without the leading dot (e.g. `jpg`, `exr`).
-
-If disabled, original extensions are preserved.
+### Change extension
+- `plate.0100.png` → `plate.0100.jpg`
 
 ---
 
-## Preview and Rename Workflow
+## Notes / Behaviour
 
-1. **Set Directories**
-   - Choose an **Input Directory**.
-   - Optionally choose an **Output Directory**.
-
-2. **Configure Options**
-   - Enable **Replace Section** / **Renumber Sequence** / **Change Padding** / **Change Extension** as needed.
-   - Fill in the related fields.
-
-3. **Preview Rename (safe)**
-   - Click **Preview Rename**.
-   - A new window opens showing one line per file:  
-     `original_name.ext → new_name.ext`.  
-   - Use this to sanity-check before committing.
-
-4. **Rename Files (commit)**
-   - When happy with the preview, close it and click **Rename Files**.
-   - Files are renamed/moved according to your settings.
-   - A confirmation dialog appears when done.
+- If **Output Directory** is set, files are **moved** into that folder while being renamed.
+- If Output is not set, files are renamed **in place**.
+- The tool processes the files in **sorted order** (alphabetical).
 
 ---
 
-## Example
+## Troubleshooting
 
-**Original files**
-
-```text
-frame_001.png
-frame_002.png
-```
-
-**Settings**
-
-- Replace: `frame_` → `shot_`
-- Renumber Sequence: **Enable**
-  - Start number: `10`
-- Change Padding: **Enable**
-  - Padding: `4`
-- Change Extension: **Enable**
-  - New extension: `jpg`
-
-**Result**
-
-```text
-frame_001.png → shot_0010.jpg
-frame_002.png → shot_0011.jpg
-```
+- **Nothing happens / missing files:** make sure you extracted the ZIP completely before running.
+- **Rename errors:** can occur if a destination filename already exists or the folder is not writable. Preview and ensure unique output names.
 
 ---
 
-## Licence
+## License
 
 CC BY-NC-ND 4.0
+See the repository license file(s) included with this project.
 
 ---
 
 ## Credits
 
-- **Author:** Martin Heigan  
-- **Tool family:** Part of the broader `mh_tools` utility suite for VFX, CGI and general production workflows.
+©2025 Martin P. Heigan — mh_tools
